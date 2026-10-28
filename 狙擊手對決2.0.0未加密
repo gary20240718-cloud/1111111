@@ -1,0 +1,357 @@
+-- ==========================================
+-- 1. 建立 UI 與懸浮球
+-- ==========================================
+if game.CoreGui:FindFirstChild("SniperModUI") then game.CoreGui.SniperModUI:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SniperModUI"
+ScreenGui.Parent = game.CoreGui
+
+local LineFolder = Instance.new("Folder")
+LineFolder.Parent = ScreenGui
+
+-- 懸浮球
+local FloatBtn = Instance.new("TextButton")
+FloatBtn.Size = UDim2.new(0, 60, 0, 60)
+FloatBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+FloatBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
+FloatBtn.Text = "jiaNBB"
+FloatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloatBtn.TextSize = 14
+FloatBtn.Font = Enum.Font.FredokaOne
+FloatBtn.Visible = false
+FloatBtn.Active = true
+FloatBtn.Draggable = true
+FloatBtn.Parent = ScreenGui
+Instance.new("UICorner", FloatBtn).CornerRadius = UDim.new(1, 0)
+
+-- 主面板
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 180, 0, 260)
+Main.Position = UDim2.new(0.5, -90, 0.5, -130)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Main.BorderColor3 = Color3.fromRGB(0, 255, 255)
+Main.BorderSizePixel = 2
+Main.Active = true
+Main.Draggable = true
+Main.Parent = ScreenGui
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 25)
+Title.BackgroundColor3 = Color3.fromRGB(0, 100, 100)
+Title.Text = "🎯 狙擊設定 (完全體)"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 14
+Title.Parent = Main
+
+-- 關閉按鈕
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -25, 0, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Parent = Main
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+    FloatBtn.Visible = true
+    for _, obj in pairs(ScreenGui:GetChildren()) do
+        if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj.Visible = false end
+    end
+end)
+
+FloatBtn.MouseButton1Click:Connect(function()
+    Main.Visible = true
+    FloatBtn.Visible = false
+    for _, obj in pairs(ScreenGui:GetChildren()) do
+        if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj.Visible = true end
+    end
+end)
+
+-- 按鈕
+local ESPBtn = Instance.new("TextButton")
+ESPBtn.Size = UDim2.new(0.9, 0, 0, 30)
+ESPBtn.Position = UDim2.new(0.05, 0, 0, 30)
+ESPBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ESPBtn.Text = "透視: 關閉"
+ESPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ESPBtn.TextSize = 14
+ESPBtn.Parent = Main
+
+local AimBtn = Instance.new("TextButton")
+AimBtn.Size = UDim2.new(0.9, 0, 0, 30)
+AimBtn.Position = UDim2.new(0.05, 0, 0, 65)
+AimBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AimBtn.Text = "自瞄: 關閉"
+AimBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimBtn.TextSize = 14
+AimBtn.Parent = Main
+
+-- 📏 自瞄範圍拉條
+local FOVLabel = Instance.new("TextLabel")
+FOVLabel.Size = UDim2.new(0.9, 0, 0, 15)
+FOVLabel.Position = UDim2.new(0.05, 0, 0, 100)
+FOVLabel.BackgroundTransparency = 1
+FOVLabel.Text = "自瞄範圍: 150"
+FOVLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+FOVLabel.TextSize = 12
+FOVLabel.Parent = Main
+
+local FOVSliderBG = Instance.new("Frame")
+FOVSliderBG.Size = UDim2.new(0.9, 0, 0, 10)
+FOVSliderBG.Position = UDim2.new(0.05, 0, 0, 120)
+FOVSliderBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+FOVSliderBG.Active = true
+FOVSliderBG.Parent = Main
+
+local FOVSliderFill = Instance.new("Frame")
+FOVSliderFill.Size = UDim2.new(0.5, 0, 0, 10)
+FOVSliderFill.BackgroundColor3 = Color3.fromRGB(0, 200, 200)
+FOVSliderFill.Parent = FOVSliderBG
+
+-- ⚡ 自瞄力度拉條
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Size = UDim2.new(0.9, 0, 0, 15)
+SpeedLabel.Position = UDim2.new(0.05, 0, 0, 150)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "自瞄力度: 50%"
+SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+SpeedLabel.TextSize = 12
+SpeedLabel.Parent = Main
+
+local SpeedSliderBG = Instance.new("Frame")
+SpeedSliderBG.Size = UDim2.new(0.9, 0, 0, 10)
+SpeedSliderBG.Position = UDim2.new(0.05, 0, 0, 170)
+SpeedSliderBG.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedSliderBG.Active = true
+SpeedSliderBG.Parent = Main
+
+local SpeedSliderFill = Instance.new("Frame")
+SpeedSliderFill.Size = UDim2.new(0.5, 0, 0, 10)
+SpeedSliderFill.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+SpeedSliderFill.Parent = SpeedSliderBG
+
+-- ==========================================
+-- 2. 核心邏輯與變數
+-- ==========================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local espEnabled, aimEnabled = false, false
+local fovSize = 150
+local aimSpeed = 0.5 
+
+-- 🟢 自瞄 FOV 圈圈
+local FOVCircle = Instance.new("Frame")
+FOVCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
+FOVCircle.Position = UDim2.new(0.5, -fovSize, 0.5, -fovSize)
+FOVCircle.BackgroundTransparency = 1
+FOVCircle.BorderSizePixel = 2
+FOVCircle.BorderColor3 = Color3.fromRGB(0, 255, 255)
+FOVCircle.Visible = false
+FOVCircle.Parent = ScreenGui
+Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
+
+-- 拉條控制
+local function setupSlider(bg, fill, label, isFov)
+    local dragging = false
+    bg.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local mousePos = UserInputService:GetMouseLocation()
+            local relativeX = math.clamp(mousePos.X - bg.AbsolutePosition.X, 0, bg.AbsoluteSize.X)
+            local percent = relativeX / bg.AbsoluteSize.X
+            fill.Size = UDim2.new(percent, 0, 0, 10)
+            
+            if isFov then
+                fovSize = math.floor(50 + (600 - 50) * percent)
+                label.Text = "自瞄範圍: " .. fovSize
+                FOVCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
+                FOVCircle.Position = UDim2.new(0.5, -fovSize, 0.5, -fovSize)
+            else
+                local val = math.floor(10 + (100 - 10) * percent)
+                aimSpeed = val / 100
+                label.Text = "自瞄力度: " .. val .. "%"
+            end
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+end
+
+setupSlider(FOVSliderBG, FOVSliderFill, FOVLabel, true)
+setupSlider(SpeedSliderBG, SpeedSliderFill, SpeedLabel, false)
+
+ESPBtn.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    ESPBtn.Text = "透視: " .. (espEnabled and "開啟" or "關閉")
+    ESPBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
+    
+    if not espEnabled then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character and p.Character:FindFirstChild("HackHighlight") then
+                p.Character.HackHighlight:Destroy()
+            end
+        end
+        for _, obj in pairs(ScreenGui:GetChildren()) do
+            if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj:Destroy() end
+        end
+    end
+end)
+
+AimBtn.MouseButton1Click:Connect(function()
+    aimEnabled = not aimEnabled
+    AimBtn.Text = "自瞄: " .. (aimEnabled and "開啟" or "關閉")
+    AimBtn.BackgroundColor3 = aimEnabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
+    FOVCircle.Visible = aimEnabled 
+end)
+
+-- ==========================================
+-- 3. 透視 + 連線 + 資訊顯示 (即時更新)
+-- ==========================================
+RunService.RenderStepped:Connect(function()
+    if not espEnabled then return end
+
+    local activePlayers = {}
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            local head = char:FindFirstChild("Head")
+            local root = char:FindFirstChild("HumanoidRootPart")
+            
+            if humanoid and humanoid.Health > 0 and head and root and head.Transparency < 1 then
+                activePlayers[player.UserId] = true
+                
+                -- 1. 加入高亮
+                if not char:FindFirstChild("HackHighlight") then
+                    local hl = Instance.new("Highlight")
+                    hl.Name = "HackHighlight"
+                    hl.Parent = char
+                    hl.FillColor = Color3.fromRGB(255, 0, 0)
+                    hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    hl.FillTransparency = 0.5
+                    hl.OutlineTransparency = 0
+                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                end
+
+                -- 2. 計算距離與武器
+                local dist = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
+                local weapon = "空手"
+                local tool = char:FindFirstChildOfClass("Tool")
+                if tool then weapon = tool.Name end
+
+                -- 3. 取得敵人頭部螢幕座標
+                local headPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                
+                if onScreen then
+                    -- 動態建立/取得文字標籤
+                    local tagName = "ESP_Tag_" .. player.UserId
+                    local textTag = ScreenGui:FindFirstChild(tagName)
+                    if not textTag then
+                        textTag = Instance.new("TextLabel")
+                        textTag.Name = tagName
+                        textTag.BackgroundTransparency = 1
+                        textTag.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        textTag.TextSize = 12
+                        textTag.TextStrokeTransparency = 0
+                        textTag.Parent = ScreenGui
+                    end
+                    textTag.Visible = true
+                    textTag.Text = "[" .. dist .. "m] " .. weapon
+                    textTag.Position = UDim2.new(0, headPos.X - 40, 0, headPos.Y + 20) -- 顯示在頭下方
+
+                    -- 動態建立/取得綠線
+                    local lineName = "ESP_Line_" .. player.UserId
+                    local line = ScreenGui:FindFirstChild(lineName)
+                    if not line then
+                        line = Instance.new("Frame")
+                        line.Name = lineName
+                        line.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                        line.BorderSizePixel = 0
+                        line.ZIndex = 1
+                        line.Parent = ScreenGui
+                    end
+                    line.Visible = true
+                    
+                    local screenSize = Camera.ViewportSize
+                    local startPos = Vector2.new(screenSize.X / 2, 0) -- 從頂部中央連出
+                    local endPos = Vector2.new(headPos.X, headPos.Y)
+                    
+                    local length = (startPos - endPos).Magnitude
+                    local angle = math.deg(math.atan2(endPos.Y - startPos.Y, endPos.X - startPos.X))
+                    
+                    line.Size = UDim2.new(0, length, 0, 1)
+                    line.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
+                    line.Rotation = angle - 90
+
+                else
+                    -- 敵人不在畫面上，隱藏文字和線
+                    local textTag = ScreenGui:FindFirstChild("ESP_Tag_" .. player.UserId)
+                    if textTag then textTag.Visible = false end
+                    local line = ScreenGui:FindFirstChild("ESP_Line_" .. player.UserId)
+                    if line then line.Visible = false end
+                end
+            end
+        end
+    end
+
+    -- 清理已死亡或離開遊戲的玩家 UI
+    for _, obj in pairs(ScreenGui:GetChildren()) do
+        if obj.Name:match("ESP_Tag_") or obj.Name:match("ESP_Line_") then
+            local idStr = obj.Name:gsub("ESP_Tag_", ""):gsub("ESP_Line_", "")
+            local id = tonumber(idStr)
+            if not activePlayers[id] then
+                obj:Destroy()
+            end
+        end
+    end
+end)
+
+-- ==========================================
+-- 4. 瞬間/平滑自瞄
+-- ==========================================
+RunService.RenderStepped:Connect(function()
+    if not aimEnabled then return end
+
+    local closestHead = nil
+    local shortestDistance = fovSize
+    local screenCenter = Camera.ViewportSize / 2
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            
+            if head and humanoid and humanoid.Health > 0 and head.Transparency < 1 then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                
+                if onScreen and screenPos.Z > 0 then
+                    local distToCenter = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
+                    if distToCenter < shortestDistance then
+                        shortestDistance = distToCenter
+                        closestHead = head
+                    end
+                end
+            end
+        end
+    end
+
+    if closestHead then
+        local currentCFrame = Camera.CFrame
+        local targetCFrame = CFrame.lookAt(currentCFrame.Position, closestHead.Position)
+        Camera.CFrame = currentCFrame:Lerp(targetCFrame, aimSpeed) 
+    end
+end)
