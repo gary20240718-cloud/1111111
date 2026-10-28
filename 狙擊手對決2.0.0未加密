@@ -1,5 +1,5 @@
 -- ==========================================
--- 1. 建立 UI 與懸浮球
+-- 1. 建立 UI 與懸浮球 (長條形)
 -- ==========================================
 if game.CoreGui:FindFirstChild("SniperModUI") then game.CoreGui.SniperModUI:Destroy() end
 
@@ -7,23 +7,21 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "SniperModUI"
 ScreenGui.Parent = game.CoreGui
 
-local LineFolder = Instance.new("Folder")
-LineFolder.Parent = ScreenGui
-
--- 懸浮球
+-- 懸浮球 (長條形)
 local FloatBtn = Instance.new("TextButton")
-FloatBtn.Size = UDim2.new(0, 60, 0, 60)
+FloatBtn.Size = UDim2.new(0, 100, 0, 35) -- 改成長條形
 FloatBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
 FloatBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 150)
 FloatBtn.Text = "jiaNBB"
 FloatBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-FloatBtn.TextSize = 14
+FloatBtn.TextSize = 16
 FloatBtn.Font = Enum.Font.FredokaOne
 FloatBtn.Visible = false
 FloatBtn.Active = true
 FloatBtn.Draggable = true
 FloatBtn.Parent = ScreenGui
-Instance.new("UICorner", FloatBtn).CornerRadius = UDim.new(1, 0)
+local UICornerBtn = Instance.new("UICorner", FloatBtn)
+UICornerBtn.CornerRadius = UDim.new(0, 8) -- 圓角矩形
 
 -- 主面板
 local Main = Instance.new("Frame")
@@ -39,7 +37,7 @@ Main.Parent = ScreenGui
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 25)
 Title.BackgroundColor3 = Color3.fromRGB(0, 100, 100)
-Title.Text = "🎯 狙擊設定 (完全體)"
+Title.Text = "🎯 狙擊設定 (瞬鎖版)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 14
 Title.Parent = Main
@@ -56,17 +54,11 @@ CloseBtn.Parent = Main
 CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
     FloatBtn.Visible = true
-    for _, obj in pairs(ScreenGui:GetChildren()) do
-        if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj.Visible = false end
-    end
 end)
 
 FloatBtn.MouseButton1Click:Connect(function()
     Main.Visible = true
     FloatBtn.Visible = false
-    for _, obj in pairs(ScreenGui:GetChildren()) do
-        if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj.Visible = true end
-    end
 end)
 
 -- 按鈕
@@ -110,12 +102,12 @@ FOVSliderFill.Size = UDim2.new(0.5, 0, 0, 10)
 FOVSliderFill.BackgroundColor3 = Color3.fromRGB(0, 200, 200)
 FOVSliderFill.Parent = FOVSliderBG
 
--- ⚡ 自瞄力度拉條
+-- ⚡ 自瞄力度拉條 (這次強制 100% 死鎖，拉條作為視覺保留)
 local SpeedLabel = Instance.new("TextLabel")
 SpeedLabel.Size = UDim2.new(0.9, 0, 0, 15)
 SpeedLabel.Position = UDim2.new(0.05, 0, 0, 150)
 SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "自瞄力度: 50%"
+SpeedLabel.Text = "自瞄力度: 100% (死鎖)"
 SpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 SpeedLabel.TextSize = 12
 SpeedLabel.Parent = Main
@@ -128,7 +120,7 @@ SpeedSliderBG.Active = true
 SpeedSliderBG.Parent = Main
 
 local SpeedSliderFill = Instance.new("Frame")
-SpeedSliderFill.Size = UDim2.new(0.5, 0, 0, 10)
+SpeedSliderFill.Size = UDim2.new(1, 0, 0, 10) -- 永遠滿的
 SpeedSliderFill.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
 SpeedSliderFill.Parent = SpeedSliderBG
 
@@ -143,7 +135,7 @@ local LocalPlayer = Players.LocalPlayer
 
 local espEnabled, aimEnabled = false, false
 local fovSize = 150
-local aimSpeed = 0.5 
+local isFiring = false -- 判斷是否按下開火
 
 -- 🟢 自瞄 FOV 圈圈
 local FOVCircle = Instance.new("Frame")
@@ -155,6 +147,19 @@ FOVCircle.BorderColor3 = Color3.fromRGB(0, 255, 255)
 FOVCircle.Visible = false
 FOVCircle.Parent = ScreenGui
 Instance.new("UICorner", FOVCircle).CornerRadius = UDim.new(1, 0)
+
+-- 監聽滑鼠點擊 (判斷你是否按下開火/開鏡)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isFiring = true
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isFiring = false
+    end
+end)
 
 -- 拉條控制
 local function setupSlider(bg, fill, label, isFov)
@@ -176,10 +181,6 @@ local function setupSlider(bg, fill, label, isFov)
                 label.Text = "自瞄範圍: " .. fovSize
                 FOVCircle.Size = UDim2.new(0, fovSize * 2, 0, fovSize * 2)
                 FOVCircle.Position = UDim2.new(0.5, -fovSize, 0.5, -fovSize)
-            else
-                local val = math.floor(10 + (100 - 10) * percent)
-                aimSpeed = val / 100
-                label.Text = "自瞄力度: " .. val .. "%"
             end
         end
     end)
@@ -191,13 +192,11 @@ local function setupSlider(bg, fill, label, isFov)
 end
 
 setupSlider(FOVSliderBG, FOVSliderFill, FOVLabel, true)
-setupSlider(SpeedSliderBG, SpeedSliderFill, SpeedLabel, false)
 
 ESPBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     ESPBtn.Text = "透視: " .. (espEnabled and "開啟" or "關閉")
     ESPBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(50, 50, 50)
-    
     if not espEnabled then
         for _, p in pairs(Players:GetPlayers()) do
             if p.Character and p.Character:FindFirstChild("HackHighlight") then
@@ -205,7 +204,7 @@ ESPBtn.MouseButton1Click:Connect(function()
             end
         end
         for _, obj in pairs(ScreenGui:GetChildren()) do
-            if obj.Name == "ESP_Tag" or obj.Name == "ESP_Line" then obj:Destroy() end
+            if obj.Name:match("ESP_Tag_") or obj.Name:match("ESP_Line_") then obj:Destroy() end
         end
     end
 end)
@@ -218,12 +217,13 @@ AimBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ==========================================
--- 3. 透視 + 連線 + 資訊顯示 (即時更新)
+-- 3. 全圖透視 + 固定射線 (不會亂飄)
 -- ==========================================
 RunService.RenderStepped:Connect(function()
     if not espEnabled then return end
 
     local activePlayers = {}
+    local drawCount = 0
 
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
@@ -232,10 +232,10 @@ RunService.RenderStepped:Connect(function()
             local head = char:FindFirstChild("Head")
             local root = char:FindFirstChild("HumanoidRootPart")
             
-            if humanoid and humanoid.Health > 0 and head and root and head.Transparency < 1 then
+            -- 🚨 放寬判定：只要活著，不管有沒有隱形都算
+            if humanoid and humanoid.Health > 0 and head and root then
                 activePlayers[player.UserId] = true
-                
-                -- 1. 加入高亮
+
                 if not char:FindFirstChild("HackHighlight") then
                     local hl = Instance.new("Highlight")
                     hl.Name = "HackHighlight"
@@ -247,58 +247,57 @@ RunService.RenderStepped:Connect(function()
                     hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
                 end
 
-                -- 2. 計算距離與武器
                 local dist = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
                 local weapon = "空手"
                 local tool = char:FindFirstChildOfClass("Tool")
                 if tool then weapon = tool.Name end
 
-                -- 3. 取得敵人頭部螢幕座標
                 local headPos, onScreen = Camera:WorldToViewportPoint(head.Position)
                 
                 if onScreen then
-                    -- 動態建立/取得文字標籤
-                    local tagName = "ESP_Tag_" .. player.UserId
-                    local textTag = ScreenGui:FindFirstChild(tagName)
-                    if not textTag then
-                        textTag = Instance.new("TextLabel")
-                        textTag.Name = tagName
-                        textTag.BackgroundTransparency = 1
-                        textTag.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        textTag.TextSize = 12
-                        textTag.TextStrokeTransparency = 0
-                        textTag.Parent = ScreenGui
-                    end
-                    textTag.Visible = true
-                    textTag.Text = "[" .. dist .. "m] " .. weapon
-                    textTag.Position = UDim2.new(0, headPos.X - 40, 0, headPos.Y + 20) -- 顯示在頭下方
+                    -- 限制一次最多畫 4 個人的線，防止畫面太亂
+                    drawCount = drawCount + 1
+                    if drawCount <= 4 then
+                        local tagName = "ESP_Tag_" .. player.UserId
+                        local textTag = ScreenGui:FindFirstChild(tagName)
+                        if not textTag then
+                            textTag = Instance.new("TextLabel")
+                            textTag.Name = tagName
+                            textTag.BackgroundTransparency = 1
+                            textTag.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            textTag.TextSize = 12
+                            textTag.TextStrokeTransparency = 0
+                            textTag.Parent = ScreenGui
+                        end
+                        textTag.Visible = true
+                        textTag.Text = "[" .. dist .. "m] " .. weapon
+                        textTag.Position = UDim2.new(0, headPos.X - 40, 0, headPos.Y + 20)
 
-                    -- 動態建立/取得綠線
-                    local lineName = "ESP_Line_" .. player.UserId
-                    local line = ScreenGui:FindFirstChild(lineName)
-                    if not line then
-                        line = Instance.new("Frame")
-                        line.Name = lineName
-                        line.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-                        line.BorderSizePixel = 0
-                        line.ZIndex = 1
-                        line.Parent = ScreenGui
+                        local lineName = "ESP_Line_" .. player.UserId
+                        local line = ScreenGui:FindFirstChild(lineName)
+                        if not line then
+                            line = Instance.new("Frame")
+                            line.Name = lineName
+                            line.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+                            line.BorderSizePixel = 0
+                            line.ZIndex = 1
+                            line.Parent = ScreenGui
+                        end
+                        line.Visible = true
+                        
+                        -- 從最上方連到頭部
+                        local screenSize = Camera.ViewportSize
+                        local startPos = Vector2.new(screenSize.X / 2, 0) 
+                        local endPos = Vector2.new(headPos.X, headPos.Y)
+                        
+                        local length = (startPos - endPos).Magnitude
+                        local angle = math.deg(math.atan2(endPos.Y - startPos.Y, endPos.X - startPos.X))
+                        
+                        line.Size = UDim2.new(0, length, 0, 1)
+                        line.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
+                        line.Rotation = angle - 90
                     end
-                    line.Visible = true
-                    
-                    local screenSize = Camera.ViewportSize
-                    local startPos = Vector2.new(screenSize.X / 2, 0) -- 從頂部中央連出
-                    local endPos = Vector2.new(headPos.X, headPos.Y)
-                    
-                    local length = (startPos - endPos).Magnitude
-                    local angle = math.deg(math.atan2(endPos.Y - startPos.Y, endPos.X - startPos.X))
-                    
-                    line.Size = UDim2.new(0, length, 0, 1)
-                    line.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
-                    line.Rotation = angle - 90
-
                 else
-                    -- 敵人不在畫面上，隱藏文字和線
                     local textTag = ScreenGui:FindFirstChild("ESP_Tag_" .. player.UserId)
                     if textTag then textTag.Visible = false end
                     local line = ScreenGui:FindFirstChild("ESP_Line_" .. player.UserId)
@@ -308,24 +307,23 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- 清理已死亡或離開遊戲的玩家 UI
+    -- 清理
     for _, obj in pairs(ScreenGui:GetChildren()) do
         if obj.Name:match("ESP_Tag_") or obj.Name:match("ESP_Line_") then
             local idStr = obj.Name:gsub("ESP_Tag_", ""):gsub("ESP_Line_", "")
             local id = tonumber(idStr)
-            if not activePlayers[id] then
-                obj:Destroy()
-            end
+            if not activePlayers[id] then obj:Destroy() end
         end
     end
 end)
 
 -- ==========================================
--- 4. 瞬間/平滑自瞄
+-- 4. 絕對瞬鎖自瞄 (開火/點擊瞬間定位)
 -- ==========================================
 RunService.RenderStepped:Connect(function()
     if not aimEnabled then return end
 
+    -- 尋找圈內最近敵人
     local closestHead = nil
     local shortestDistance = fovSize
     local screenCenter = Camera.ViewportSize / 2
@@ -335,9 +333,8 @@ RunService.RenderStepped:Connect(function()
             local head = player.Character:FindFirstChild("Head")
             local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
             
-            if head and humanoid and humanoid.Health > 0 and head.Transparency < 1 then
+            if head and humanoid and humanoid.Health > 0 then
                 local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                
                 if onScreen and screenPos.Z > 0 then
                     local distToCenter = (Vector2.new(screenPos.X, screenPos.Y) - screenCenter).Magnitude
                     if distToCenter < shortestDistance then
@@ -349,9 +346,9 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if closestHead then
-        local currentCFrame = Camera.CFrame
-        local targetCFrame = CFrame.lookAt(currentCFrame.Position, closestHead.Position)
-        Camera.CFrame = currentCFrame:Lerp(targetCFrame, aimSpeed) 
+    -- 🔥 核心邏輯：如果敵人在圈內，而且你正在點擊螢幕 (開火/開鏡)
+    if closestHead and isFiring then
+        -- 直接將 CFrame 設為目標位置，實現「零延遲瞬間死鎖」
+        Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, closestHead.Position)
     end
 end)
